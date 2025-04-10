@@ -122,23 +122,44 @@ function buildErrorCard( header, message ) {
 }
 
 /**
- * Get the sender's email address from a Gmail message.
+ * Get the other party's email address in a Gmail message.
+ * If the sender is the current user's email, return the "To" recipient instead.
  *
- * @param {GmailApp.GmailMessage} message The Gmail message we are looking at.
- * @return {string} The sender's email address.
+ * @param {GmailApp.GmailMessage} message The Gmail message.
+ * @return {string} The customer’s email address.
  */
 function getEmailAddressFromMessage( message ) {
+  const myEmail = Session.getActiveUser().getEmail(); // Your email
   const from = message.getFrom();
+  const to = message.getTo();
 
-  const nameAndEmailInFromMatcher = /[^<>]+/gi;
-  
-  const nameAndEmailMatchResult = from.match( nameAndEmailInFromMatcher );
+  const fromEmail = extractEmailFromString(from);
+  const toEmail = extractEmailFromString(to);
 
-  if ( nameAndEmailMatchResult === null || nameAndEmailMatchResult.length < 2 ) {
-    return from;
+  // If I'm the sender, use the recipient instead
+  if (fromEmail.toLowerCase() === myEmail.toLowerCase()) {
+    return toEmail;
   }
 
-  return nameAndEmailMatchResult[1];
+  return fromEmail;
+}
+
+/**
+ * Extract the email address from a string like "Name <email@example.com>"
+ *
+ * @param {string} emailString
+ * @returns {string}
+ */
+function extractEmailFromString(emailString) {
+  const emailRegex = /<([^>]+)>/;
+  const match = emailString.match(emailRegex);
+
+  if (match && match[1]) {
+    return match[1];
+  }
+
+  // If no angle brackets, return the whole string (e.g. just an email address).
+  return emailString;
 }
 
 /**
