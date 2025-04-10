@@ -82,6 +82,11 @@ function onGmailMessage( event ) {
  * @returns {CardService.Card}
  */
 function onSearchByEmail(e) {
+
+  if ( ! e || ! e.formInput ) {
+   return buildErrorCard('Invalid Input', 'Form input is missing. Please try again.');
+  }
+
   const emailAddress = e.formInput.searchEmail;
 
   if (!emailAddress) {
