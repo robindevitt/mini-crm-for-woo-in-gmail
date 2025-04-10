@@ -9,7 +9,23 @@ function onHomePage() {
   builder.addSection(
     CardService.newCardSection()
       .setHeader( 'Mini CRM for Woo in Gmail' )
-      .addWidget( buildKeyValueWidget( 'Store URL', getWooCommerceHost() ) )
+      .addWidget(CardService.newDivider())
+        .addWidget( buildKeyValueWidget( 'Store URL', getWooCommerceHost() ) )
+      .addWidget(CardService.newDivider())
+        .addWidget(
+          CardService.newTextInput()
+            .setFieldName('searchEmail')
+            .setTitle('Search by Email')
+        )
+        .addWidget(
+          CardService.newTextButton()
+            .setText('Search Orders')
+            .setOnClickAction(
+              CardService.newAction()
+                .setFunctionName('onSearchByEmail')
+            )
+        )
+      .addWidget(CardService.newDivider())
   );
 
   if  ( ! areWooCommerceCredentialsConfigured() ) {
@@ -57,6 +73,31 @@ function onGmailMessage( event ) {
   const orderDataForEmailAddress = fetchOrdersForEmailAddress( emailAddress );
 
   return buildCustomerCard( emailAddress, orderDataForEmailAddress );
+}
+
+/**
+ * Handle the email search from the homepage.
+ *
+ * @param {Object} e Event object containing form inputs.
+ * @returns {CardService.Card}
+ */
+function onSearchByEmail(e) {
+  const emailAddress = e.formInput.searchEmail;
+
+  if (!emailAddress) {
+    return buildErrorCard('Missing Email', 'Please enter a valid email address.');
+  }
+
+  if ('' === getWooCommerceHost(false)) {
+    return buildErrorCard('Configuration Error', 'You need to configure the WOOCOMMERCE_HOST setting');
+  }
+
+  if (!areWooCommerceCredentialsConfigured()) {
+    return buildErrorCard('Configuration Error', 'You need to set up your WooCommerce API keys');
+  }
+
+  const orderDataForEmailAddress = fetchOrdersForEmailAddress(emailAddress);
+  return buildCustomerCard(emailAddress, orderDataForEmailAddress);
 }
 
 /**
